@@ -7,6 +7,17 @@
   --chip: #2a3050;
   --primary: #52d273;
   --accent: #f05d5e;
+  --border: #2b3357;
+}
+.light {
+  --bg: #f6f7fb;
+  --panel: #ffffff;
+  --text: #1b2138;
+  --muted: #5c678b;
+  --chip: #eef1f9;
+  --primary: #2962ff;
+  --accent: #d32f2f;
+  --border: #e5e9f2;
 }
 
 .App.dark {
@@ -23,10 +34,16 @@
   align-items: center;
   gap: 1rem;
   padding: 0.5rem 1rem;
-  background: #0e1120;
-  border-bottom: 1px solid #2b3357;
 }
-.Brand { font-weight: 700; }
+.TopBar.dark {
+  background: #0e1120;
+  border-bottom: 1px solid var(--border);
+}
+.TopBar.light {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border);
+}
+.Brand { font-weight: 700; background: transparent; border: none; color: var(--text); cursor: pointer; }
 .Title { text-align: center; font-weight: 700; }
 .User { display: flex; gap: 0.5rem; align-items: center; }
 .btn {
@@ -44,6 +61,11 @@
   max-width: 1100px;
   margin: 0 auto;
 }
+.Header.light {
+  padding: 1.25rem 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+}
 
 .Search {
   display: grid;
@@ -52,7 +74,7 @@
 }
 .Search input {
   background: var(--panel);
-  border: 1px solid #2b3357;
+  border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.75rem 0.9rem;
   color: var(--text);
@@ -64,7 +86,7 @@
 .chip {
   background: var(--chip);
   color: var(--text);
-  border: 1px solid #2b3357;
+  border: 1px solid var(--border);
   border-radius: 999px;
   padding: 0.35rem 0.75rem;
   font-size: 0.85rem;
@@ -80,10 +102,26 @@
   margin: 0 auto;
   padding: 1rem;
 }
+.Grid.light {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 1rem;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 1rem;
+}
 
 .Card.dark {
   background: var(--panel);
-  border: 1px solid #2b3357;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+  display: grid;
+  grid-template-rows: 160px auto;
+}
+.Card.light {
+  background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 12px;
   overflow: hidden;
   display: grid;
@@ -104,3 +142,48 @@
   padding: 1rem;
   color: var(--muted);
 }
+.Footer.light {
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 1rem;
+  color: var(--muted);
+}
+
+/* Modal styles */
+.ModalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(10, 12, 20, 0.7);
+  display: grid;
+  place-items: center;
+  padding: 1rem;
+  z-index: 1000;
+}
+.ModalCard {
+  width: min(900px, 100%);
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.ModalHeader {
+  display: grid;
+  grid-template-columns: 160px 1fr auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border);
+}
+.ModalHeader img { width: 100%; height: 120px; object-fit: cover; border-radius: 8px; }
+.ModalHeader h2 { margin: 0 0 0.25rem; }
+.muted { color: var(--muted); }
+
+.ModalBody { padding: 1rem; }
+.Ingredients { list-style: none; padding: 0; margin: 0 0 1rem; display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 0.5rem; }
+.Ingredients li { display: flex; justify-content: space-between; gap: 0.5rem; background: #222742; border: 1px solid var(--border); border-radius: 8px; padding: 0.5rem 0.75rem; }
+
+/* Simple hero styles for the home page */
+.Hero { text-align: center; padding: 2rem 1rem; }
+.Hero h1 { margin: 0 0 0.5rem; }
+.HeroActions { display: inline-flex; gap: 0.75rem; margin-top: 0.5rem; }
+.instructions { white-space: pre-wrap; line-height: 1.5; }

@@ -16,6 +16,11 @@ function App() {
     }
   });
   const [user, setUser] = useState(() => localStorage.getItem('user') || '');
+  const [theme, setTheme] = useState(() => localStorage.getItem('theme') || 'dark');
+  const [page, setPage] = useState('home');
+  const [selectedId, setSelectedId] = useState('');
+  const [detail, setDetail] = useState(null);
+  const [loadingDetail, setLoadingDetail] = useState(false);
 
   // Load categories
   useEffect(() => {
@@ -99,10 +104,61 @@ function App() {
     }
   };
 
+  const viewRecipe = async (id) => {
+    try {
+      setSelectedId(id);
+      setLoadingDetail(true);
+      setDetail(null);
+      const r = await fetch(`${API}/lookup.php?i=${encodeURIComponent(id)}`);
+      const d = await r.json();
+      const meal = (d.meals || [])[0] || null;
+      setDetail(meal);
+    } catch {
+      setDetail(null);
+    } finally {
+      setLoadingDetail(false);
+    }
+  };
+
+  const closeRecipe = () => {
+    setSelectedId('');
+    setDetail(null);
+    setLoadingDetail(false);
+  };
+
+  const ingredients = (meal) => {
+    if (!meal) return [];
+    const list = [];
+    for (let i = 1; i <= 20; i++) {
+      const ing = meal[`strIngredient${i}`];
+      const mea = meal[`strMeasure${i}`];
+      if (ing && ing.trim()) {
+        list.push({ ingredient: ing.trim(), measure: (mea || '').trim() });
+      }
+    }
+    return list;
+  };
+
+  const goHome = () => {
+    setCategory('');
+    setQuery('');
+    closeRecipe();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setPage('home');
+  };
+
+  const toggleTheme = () => {
+    setTheme((prev) => {
+      const next = prev === 'dark' ? 'light' : 'dark';
+      localStorage.setItem('theme', next);
+      return next;
+    });
+  };
+
   return (
-    <div className="App dark">
-      <nav className="TopBar">
-        <div className="Brand">🍲 Home</div>
+    <div className={`App ${theme}`}>
+      <nav className={`TopBar ${theme}`}>
+        <button className="Brand" onClick={goHome} aria-label="Go to home">🍲 Home</button>
         <div className="Title">Meal Search</div>
         <div className="User">
           {user ? (
@@ -113,58 +169,114 @@ function App() {
           ) : (
             <button className="btn" onClick={signIn}>Sign In</button>
           )}
+          <button className="btn" onClick={toggleTheme}>{theme === 'dark' ? 'Light' : 'Dark'} Mode</button>
         </div>
       </nav>
 
-      <header className="Header dark">
-        <form className="Search" onSubmit={(e) => e.preventDefault()}>
-          <input
-            type="text"
-            placeholder="Search for a meal..."
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-          />
-          <button type="button" className="btn primary" onClick={shuffle}>Shuffle Recipes</button>
-        </form>
-
-        <div className="Filters">
-          <span>Filter by Category</span>
-          <div className="Chips">
-            {['Breakfast','Lunch','Dinner','Dessert','Beef','Pork','Chicken','Seafood','Vegetarian'].map((c) => (
-              <button
-                key={c}
-                className={`chip ${category===c ? 'active':''}`}
-                onClick={() => setCategory(category===c ? '' : c)}
-              >{c}</button>
-            ))}
-            <button className="chip fav" onClick={() => setMeals(meals.filter(m=>favorites.includes(m.id)))}>
-              ❤ Favorites ({favoriteCount})
-            </button>
-          </div>
-        </div>
-      </header>
-
-      <main className="Grid dark">
-        {shownMeals.map((m) => (
-          <article className="Card dark" key={m.id}>
-            <div className="ImageWrap">
-              <img src={m.image} alt={m.title} />
+      {page === 'home' ? (
+        <header className={`Header ${theme}`}>
+          <div className="Hero">
+            <h1>Tasty recipes at your fingertips</h1>
+            <p className="muted">Discover meals, filter by category, and save favorites.</p>
+            <div className="HeroActions">
+              <button className="btn primary" onClick={() => setPage('search')}>Browse Recipes</button>
+              <button className="btn" onClick={() => { setPage('search'); setCategory('Seafood'); }}>Seafood Picks</button>
             </div>
-            <div className="CardBody">
-              <h3>{m.title}</h3>
-              <p>{m.category}</p>
-              <div className="Actions">
-                <button className="btn" onClick={() => window.alert(m.title)}>View</button>
-                <button className={`icon ${isFavorite(m.id)?'active':''}`} onClick={() => toggleFavorite(m.id)} aria-label="Toggle favorite">❤</button>
+          </div>
+        </header>
+      ) : (
+        <>
+          <header className={`Header ${theme}`}>
+            <form className="Search" onSubmit={(e) => e.preventDefault()}>
+              <input
+                type="text"
+                placeholder="Search for a meal..."
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+              />
+              <button type="button" className="btn primary" onClick={shuffle}>Shuffle Recipes</button>
+            </form>
+
+            <div className="Filters">
+              <span>Filter by Category</span>
+              <div className="Chips">
+                {['Breakfast','Lunch','Dinner','Dessert','Beef','Pork','Chicken','Seafood','Vegetarian'].map((c) => (
+                  <button
+                    key={c}
+                    className={`chip ${category===c ? 'active':''}`}
+                    onClick={() => setCategory(category===c ? '' : c)}
+                  >{c}</button>
+                ))}
+                <button className="chip fav" onClick={() => setMeals(meals.filter(m=>favorites.includes(m.id)))}>
+                  ❤ Favorites ({favoriteCount})
+                </button>
               </div>
             </div>
-          </article>
-        ))}
-      </main>
+          </header>
 
-      <footer className="Footer dark">
+          <main className={`Grid ${theme}`}>
+            {shownMeals.map((m) => (
+              <article className={`Card ${theme}`} key={m.id}>
+                <div className="ImageWrap">
+                  <img src={m.image} alt={m.title} />
+                </div>
+                <div className="CardBody">
+                  <h3>{m.title}</h3>
+                  <p>{m.category}</p>
+                  <div className="Actions">
+                    <button className="btn" onClick={() => viewRecipe(m.id)}>View</button>
+                    <button className={`icon ${isFavorite(m.id)?'active':''}`} onClick={() => toggleFavorite(m.id)} aria-label="Toggle favorite">❤</button>
+                  </div>
+                </div>
+              </article>
+            ))}
+          </main>
+        </>
+      )}
+
+      <footer className={`Footer ${theme}`}>
         <small>© {new Date().getFullYear()} Meal Search</small>
       </footer>
+
+      {selectedId && (
+        <div className="ModalOverlay" onClick={closeRecipe}>
+          <div className="ModalCard" onClick={(e) => e.stopPropagation()}>
+            {loadingDetail && <div className="ModalBody">Loading…</div>}
+            {!loadingDetail && detail && (
+              <>
+                <div className="ModalHeader">
+                  <img src={detail.strMealThumb} alt={detail.strMeal} />
+                  <div>
+                    <h2>{detail.strMeal}</h2>
+                    <p className="muted">{detail.strCategory} {detail.strArea ? `• ${detail.strArea}` : ''}</p>
+                  </div>
+                  <button className="btn" onClick={closeRecipe}>Close</button>
+                </div>
+                <div className="ModalBody">
+                  <h3>Ingredients</h3>
+                  <ul className="Ingredients">
+                    {ingredients(detail).map((it, idx) => (
+                      <li key={idx}><span>{it.ingredient}</span><span className="muted">{it.measure}</span></li>
+                    ))}
+                  </ul>
+                  {detail.strInstructions && (
+                    <>
+                      <h3>Instructions</h3>
+                      <p className="instructions">{detail.strInstructions}</p>
+                    </>
+                  )}
+                  {detail.strYoutube && (
+                    <a className="btn primary" target="_blank" rel="noreferrer" href={detail.strYoutube}>Watch on YouTube</a>
+                  )}
+                </div>
+              </>
+            )}
+            {!loadingDetail && !detail && (
+              <div className="ModalBody">Recipe not found.</div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }
